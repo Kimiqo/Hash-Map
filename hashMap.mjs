@@ -1,0 +1,227 @@
+import LinkedList from "./LinkedList.mjs";
+
+class hashMap{
+    constructor(bucket, capacity = 16, loadFactor){
+        this.bucket = new Array(bucket);
+        this.capacity = capacity;
+        this.loadFactor = loadFactor || 0.75;
+        this.size = 0;
+    }
+
+    set(key, value) {
+        let hashed = hash(key);
+        let bucketIndex = hashed % this.capacity;
+
+        if (this.bucket[bucketIndex] === undefined) {
+            // First item in this bucket
+            this.bucket[bucketIndex] = { key, value };
+            this.size++;
+        } else if (this.bucket[bucketIndex] instanceof LinkedList) {
+            // LinkedList already exists, update or append
+            const existingNode = this.bucket[bucketIndex].find(item => item.key === key);
+            if (existingNode) {
+                existingNode.value = value;
+            } else {
+                this.bucket[bucketIndex].append({ key, value });
+                this.size++;
+            }
+        } else {
+            // Single item exists, check if it's the same key
+            if (this.bucket[bucketIndex].key === key) {
+                this.bucket[bucketIndex].value = value;
+            } else {
+                // Convert to LinkedList
+                const existingItem = this.bucket[bucketIndex];
+                const list = new LinkedList();
+                list.append(existingItem);
+                list.append({ key, value });
+                this.bucket[bucketIndex] = list;
+                this.size++;
+            }
+        }
+
+        // Check if resizing is needed
+        if (this.size / this.capacity > this.loadFactor) {
+            this.resize();
+        }
+
+        return this;
+    }
+
+    get(key) {
+        const index = hash(key) % this.capacity;
+        const bucketItem = this.bucket[index];
+
+        if (!bucketItem) {
+            return `Does not exist`;
+        }
+
+        //if bucket has a linkedlist
+        if (bucketItem instanceof LinkedList) {
+            const node = bucketItem.find(item => item.key === key);
+            return node ? node.value : `Does not exist`;
+        }
+
+        return bucketItem.key === key ? bucketItem.value : `Does not exist`;
+    }
+
+    has(key){
+        const index = hash(key) % this.capacity;
+        const bucketItem = this.bucket[index];
+
+        if (!bucketItem) {
+            return `Does not exist`;
+        }
+
+        //if bucket has a linkedlist
+        if (bucketItem instanceof LinkedList) {
+            const node = bucketItem.find(item => item.key === key);
+            return node ? `True: exists` : `False: DNE`;
+        }
+
+        return bucketItem.key === key ? true : false;
+    }
+
+    remove(key){
+        if (!(this.has(key))){
+            return `Does not exist`;
+        } else {
+            return `Write remove-me code`;
+        }
+    }
+
+    length(){
+        return `Size of HashMap: ${this.size}`;
+    }
+
+    clear(){
+        this.bucket = new Array();
+        this.capacity = 16;
+        this.loadFactor = 0.75;
+        this.size = 0;
+
+        return `Cleared the hashMap: ${this.bucket}`;
+    }
+
+    keys() { //returns an array containing all the keys inside the hash map.
+        const keyArray = [];
+
+        if (this.size === 0) {
+            return `HashMap is empty`;
+        }
+
+        this.bucket.forEach(element => {
+            if (element instanceof LinkedList) {
+                // If it's a LinkedList, iterate through its nodes
+                let current = element.head;
+                while (current) {
+                    // Check if current.value exists before accessing its key
+                    if (current.value && current.value.key !== undefined) {
+                        keyArray.push(current.value.key);
+                    } else if (current.key !== undefined) {
+                        // If the key is directly on the current node
+                        keyArray.push(current.key);
+                    }
+                    current = current.next;
+                }
+            } else if (element && element.key !== undefined) {
+                // If it's a single key-value pair
+                keyArray.push(element.key);
+            }
+        });
+
+        return keyArray;
+    }
+
+    values() { //returns an array containing all the values inside the hash map.
+        const valueArray = [];
+
+        if (this.size === 0) {
+            return `HashMap is empty`;
+        }
+
+        this.bucket.forEach(element => {
+            if (element instanceof LinkedList) {
+                // If it's a LinkedList, iterate through its nodes
+                let current = element.head;
+                while (current) {
+                    // Check if current.value exists before accessing its value
+                    if (current.value && current.value.value !== undefined) {
+                        valueArray.push(current.value.value);
+                    } else if (current.value !== undefined) {
+                        // If the value is directly on the current node
+                        valueArray.push(current.value);
+                    }
+                    current = current.next;
+                }
+            } else if (element && element.value !== undefined) {
+                // If it's a single key-value pair
+                valueArray.push(element.value);
+            }
+        });
+
+        return valueArray;
+    }
+
+    entries() { // returns an array that contains each key, value pair
+        const entryArray = [];
+
+        if (this.size === 0) {
+            return `HashMap is empty`;
+        }
+
+        this.bucket.forEach(element => {
+            if (element instanceof LinkedList) {
+                // If it's a LinkedList, iterate through its nodes
+                let current = element.head;
+                while (current) {
+                    if (current.value && current.value.key !== undefined && current.value.value !== undefined) {
+                        entryArray.push([current.value.key, current.value.value]);
+                    } else if (current.key !== undefined && current.value !== undefined) {
+                        // If the key and value are directly on the current node
+                        entryArray.push([current.key, current.value]);
+                    }
+                    current = current.next;
+                }
+            } else if (element && element.key !== undefined && element.value !== undefined) {
+                // If it's a single key-value pair
+                entryArray.push([element.key, element.value]);
+            }
+        });
+
+        return entryArray;
+    }
+
+    resize() {
+        const oldBucket = this.bucket;
+        this.capacity *= 2;
+        this.bucket = new Array(this.capacity);
+        this.size = 0;
+
+        oldBucket.forEach(item => {
+            if (item instanceof LinkedList) {
+                let current = item.head;
+                while (current) {
+                    this.set(current.value.key, current.value.value);
+                    current = current.next;
+                }
+            } else if (item) {
+                this.set(item.key, item.value);
+            }
+        });
+    }
+
+}
+
+function hash(key) {
+    let hashCode = 0;
+        
+    const primeNumber = 31;
+    for (let i = 0; i < key.length; i++) {
+        hashCode = primeNumber * hashCode + key.charCodeAt(i);
+    }
+    
+    return hashCode;
+} 
+
+export default hashMap;
