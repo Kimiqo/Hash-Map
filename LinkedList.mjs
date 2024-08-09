@@ -99,25 +99,6 @@ export default class LinkedList{
         return tail;
     }
 
-    // contains(value){
-
-    //     if(this.head.data == value){
-    //         return this.head;
-    //     } else if(!(this.head.data == value)){
-    //         let current = this.head;
-    //         while(current){
-    //             if (current.nextNode.data == value){
-    //                 return true;
-    //             }
-    //             current = current.nextNode;
-    //         }
-    //     } else {
-    //         return false;
-    //     }
-
-            
-    // }
-
     contains(value) {
         let current = this.head;
         while (current) {
@@ -127,6 +108,34 @@ export default class LinkedList{
             current = current.nextNode;
         }
         return false;
+    }
+
+    find(value){ //returns the index of the node containing value, or null if not found.
+        let current = this.head;
+        let index = 0;
+        while (current) {
+            if (current.data === value) {
+                return `Value found at index: ${index}`; 
+            }
+            current = current.nextNode;
+            index++;
+        }
+        return false;
+    }
+
+    toString(){
+        let current = this.head;
+        let string = "String Version: ";
+        while (current) {
+            if (current.nextNode == null){
+                string = string + ` ( ${current.data} )`;
+                current = current.nextNode;
+            } else {
+                string = string + ` ( ${current.data} ) --> `;
+                current = current.nextNode;
+            }
+        }
+        return string;
     }
 
 }
