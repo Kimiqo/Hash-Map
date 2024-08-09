@@ -1,10 +1,10 @@
 import LinkedList from "./LinkedList.mjs";
 
 class hashMap{
-    constructor(bucket, capacity = 16, loadFactor){
-        this.bucket = new Array(bucket);
+    constructor(bucket = new Array(), capacity = 16, loadFactor = 0.75){
+        this.bucket = bucket;
         this.capacity = capacity;
-        this.loadFactor = loadFactor || 0.75;
+        this.loadFactor = loadFactor;
         this.size = 0;
     }
 
@@ -40,10 +40,10 @@ class hashMap{
             }
         }
 
-        // Check if resizing is needed
-        if (this.size / this.capacity > this.loadFactor) {
-            this.resize();
-        }
+        // // Check if resizing is needed
+        // if (this.size / this.capacity > this.loadFactor) {
+        //     this.resize();
+        // }
 
         return this;
     }
@@ -165,52 +165,27 @@ class hashMap{
 
     entries() { // returns an array that contains each key, value pair
         const entryArray = [];
-
-        if (this.size === 0) {
-            return `HashMap is empty`;
-        }
-
-        this.bucket.forEach(element => {
-            if (element instanceof LinkedList) {
-                // If it's a LinkedList, iterate through its nodes
-                let current = element.head;
-                while (current) {
-                    if (current.value && current.value.key !== undefined && current.value.value !== undefined) {
-                        entryArray.push([current.value.key, current.value.value]);
-                    } else if (current.key !== undefined && current.value !== undefined) {
-                        // If the key and value are directly on the current node
-                        entryArray.push([current.key, current.value]);
+        for (let i = 0; i < this.bucket.length; i++) {
+            if (this.bucket[i]) {
+                if (this.bucket[i] instanceof LinkedList) {
+                    // Handle LinkedList entries
+                        //create an array to hold index-wise linked-lists
+                    let indexArray = [];
+                    let current = this.bucket[i].head;
+                    while (current) {
+                        indexArray.push([current.data.key, current.data.value]);
+                        current = current.nextNode;
                     }
-                    current = current.next;
+                    //put the array of array in its place
+                    entryArray[i] = indexArray;
+                } else {
+                    // Handle regular entries
+                    entryArray.push([this.bucket[i].key, this.bucket[i].value]);
                 }
-            } else if (element && element.key !== undefined && element.value !== undefined) {
-                // If it's a single key-value pair
-                entryArray.push([element.key, element.value]);
             }
-        });
-
+        }
         return entryArray;
     }
-
-    resize() {
-        const oldBucket = this.bucket;
-        this.capacity *= 2;
-        this.bucket = new Array(this.capacity);
-        this.size = 0;
-
-        oldBucket.forEach(item => {
-            if (item instanceof LinkedList) {
-                let current = item.head;
-                while (current) {
-                    this.set(current.value.key, current.value.value);
-                    current = current.next;
-                }
-            } else if (item) {
-                this.set(item.key, item.value);
-            }
-        });
-    }
-
 }
 
 function hash(key) {

@@ -28,11 +28,15 @@ test.set('jacket', 'blue')
 test.set('kite', 'pink')
 test.set('lion', 'golden')
 
-console.log(test.entries());
+test.set('moon', 'silver');
 
-test.set('apple', 'blueGreen');
-// test.set('moon', 'silver');
+console.log(test.bucket);
+
+// test.set('apple', 'blueGreen');
+
 console.log(test.entries());
+// console.log(test.clear());
+// console.log(test.bucket);
 
 
 
